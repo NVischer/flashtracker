@@ -3,72 +3,101 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flash-Tracker</title>
+<title>Flash Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#010a13;--panel:#091428;--line:#463714;--gold:#c8aa6e;--tx:#f0e6d2;--mu:#8c8570;--ready:#0ac8b9;--cd:#e0463c}
+:root{--bg:#0b0d12;--surface:#141821;--raised:#1b2030;--line:#252b3b;--tx:#eef1f6;--mu:#8791a5;--ready:#34d399;--cd:#f87171;--soon:#fbbf24;--ac:#7c9cff}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:400 16px/1.4 Barlow,system-ui,sans-serif;padding:16px;max-width:1100px;margin-inline:auto}
-h1{font:700 28px 'Barlow Condensed',sans-serif;letter-spacing:.04em;margin:0;color:var(--gold)}
-header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
-.net{color:var(--mu);font-size:14px}
-.net b{color:var(--ready)}
-button,input{font:inherit;color:var(--tx);background:var(--panel);border:1px solid var(--line);padding:8px 14px;cursor:pointer}
-button:hover{border-color:var(--gold)}
-button:focus-visible,input:focus-visible{outline:2px solid var(--ready);outline-offset:2px}
-input[type=text]{cursor:text;width:90px;text-align:center}
-.clock{border:1px solid var(--line);background:var(--panel);padding:16px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;margin-bottom:16px}
-#time{font:700 72px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums}
-#time.paused{color:var(--mu)}
-.ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.primary{background:var(--gold);color:#010a13;border-color:var(--gold);font-weight:600}
-.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}#time{font-size:56px}}
-.card{border:1px solid var(--line);background:var(--panel);padding:12px;display:flex;flex-direction:column;gap:10px;border-top:4px solid var(--ready)}
-.card.cd{border-top-color:var(--cd)}
-.role{display:flex;justify-content:space-between;color:var(--gold);font:700 20px 'Barlow Condensed',sans-serif;letter-spacing:.04em}
-.role kbd{color:var(--mu);font:500 14px Barlow,sans-serif}
-.use{height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0}
-.use .big{font:700 40px/1 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;color:var(--ready)}
-.cd .use .big{color:var(--cd)}
-.use small{color:var(--mu)}
-.bar{height:4px;background:#1e2328}
-.bar i{display:block;height:100%;width:0;background:var(--cd)}
-.row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}
-.row label{display:flex;gap:6px;align-items:center;cursor:pointer}
-.row button{padding:4px 10px;font-size:13px}
-.hint{color:var(--mu);font-size:14px;margin-top:16px}
+body{margin:0;background:radial-gradient(1200px 500px at 50% -200px,#1a2140 0,var(--bg) 70%) no-repeat,var(--bg);color:var(--tx);font:400 15px/1.45 Inter,system-ui,sans-serif;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 40px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--raised);border-radius:10px;padding:9px 14px;font-weight:500;transition:background .15s,border-color .15s}
+button:hover{border-color:#3a4260;background:#222942}
+button:focus-visible,input:focus-visible+i{outline:2px solid var(--ac);outline-offset:2px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.brand{font-weight:800;font-size:20px;letter-spacing:-.02em}
+.top .r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 14px;color:var(--mu);font-size:14px}
+.pill b{color:var(--tx);font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--mu)}
+.dot.on{background:var(--ready);box-shadow:0 0 8px var(--ready)}
+.clock{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px;text-align:center;margin-bottom:20px}
+.state{display:inline-block;font-size:13px;font-weight:600;color:var(--mu);margin-bottom:4px}
+.state.run{color:var(--ready)}
+#time{font-size:88px;font-weight:800;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+#time.paused{color:#566079}
+.ctl{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:20px}
+.sync{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg)}
+.sync input{background:none;border:0;width:96px;padding:0 12px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.sync input:focus{outline:none}
+.sync button{border:0;border-radius:0;background:var(--ac);color:#0b0d12;font-weight:700}
+.sync button:hover{background:#9bb4ff}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.card{--c:var(--ready);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:14px;transition:border-color .2s}
+.card[data-s=cd]{--c:var(--cd)}
+.card[data-s=soon]{--c:var(--soon)}
+.card[data-s=ready]{border-color:#1f4d41}
+.card header{display:flex;justify-content:space-between;align-items:center}
+.card h2{margin:0;font-size:17px;font-weight:700}
+kbd{font:600 12px Inter,sans-serif;color:var(--mu);background:var(--raised);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+.ring{position:relative;width:148px;height:148px;margin:0 auto}
+.ring svg{transform:rotate(-90deg);width:100%;height:100%}
+.ring circle{fill:none;stroke-width:7;stroke-linecap:round}
+.trk{stroke:var(--raised)}
+.val{stroke:var(--c);stroke-dasharray:276.46;transition:stroke-dashoffset .3s linear,stroke .2s}
+.mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.mid strong{font-size:34px;font-weight:800;letter-spacing:-.03em;color:var(--c);font-variant-numeric:tabular-nums;line-height:1.1}
+.mid span{font-size:12.5px;color:var(--mu)}
+.use{width:100%;padding:11px;font-weight:600;background:var(--c);border-color:var(--c);color:#0b0d12}
+.use:hover{background:var(--c);filter:brightness(1.1)}
+.card[data-s=cd] .use,.card[data-s=soon] .use{background:var(--raised);border-color:var(--line);color:var(--tx)}
+.card footer{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;color:var(--mu)}
+.sw{display:flex;align-items:center;gap:8px;cursor:pointer}
+.sw input{position:absolute;opacity:0}
+.sw i{width:34px;height:20px;border-radius:99px;background:var(--raised);border:1px solid var(--line);position:relative;transition:background .15s}
+.sw i::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--mu);transition:transform .15s,background .15s}
+.sw input:checked+i{background:#27345f;border-color:var(--ac)}
+.sw input:checked+i::after{transform:translateX(14px);background:var(--ac)}
+.undo{padding:4px 10px;border-radius:8px;font-size:15px}
+.hint{color:var(--mu);font-size:13.5px;text-align:center;margin-top:24px}
+@media(max-width:600px){#time{font-size:64px}.grid{grid-template-columns:1fr 1fr;gap:10px}.ring{width:120px;height:120px}.mid strong{font-size:28px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<header>
-  <h1>Flash-Tracker</h1>
-  <div class="ctl">
-    <span class="net" id="net">Verbinde …</span>
-    <button id="copy">Einladungslink kopieren</button>
-    <button id="newsess">Neue Session</button>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">Flash Tracker</div>
+    <div class="r">
+      <div class="pill" id="net"><i class="dot"></i>Verbinde …</div>
+      <button id="copy">Link kopieren</button>
+      <button id="newsess">Neue Session</button>
+    </div>
   </div>
-</header>
 
-<section class="clock" aria-label="Spielzeit">
-  <div id="time" class="paused">0:00</div>
-  <div class="ctl">
-    <input type="text" id="set" placeholder="mm:ss" inputmode="numeric" aria-label="Spielzeit eingeben">
-    <button class="primary" id="start">Start / Sync</button>
-    <button id="minus">−1 s</button>
-    <button id="plus">+1 s</button>
-    <button id="pause">Pause</button>
-  </div>
-</section>
+  <section class="clock" aria-label="Spielzeit">
+    <div class="state" id="state">Nicht gestartet</div>
+    <div id="time" class="paused">0:00</div>
+    <div class="ctl">
+      <div class="sync">
+        <input type="text" id="set" placeholder="mm:ss" inputmode="numeric" aria-label="Spielzeit eingeben">
+        <button id="start">Start / Sync</button>
+      </div>
+      <button id="minus">−1 s</button>
+      <button id="plus">+1 s</button>
+      <button id="pause">Pause</button>
+    </div>
+  </section>
 
-<main class="grid" id="grid"></main>
+  <main class="grid" id="grid"></main>
 
-<p class="hint">Tasten 1–5: Flash benutzt (Top, Jungle, Mid, ADC, Support). Umschalt + 1–5: Cosmic Insight an/aus. Zum Synchronisieren die aktuelle Spielzeit eingeben (z. B. 4:32) und „Start / Sync“ drücken – das gilt dann für alle in der Session.</p>
+  <p class="hint">Tasten 1–5: Flash benutzt · Umschalt + 1–5: Cosmic Insight an/aus<br>Zum Synchronisieren die Spielzeit aus dem Spiel eingeben (z. B. 4:32) und „Start / Sync“ drücken.</p>
+</div>
 
 <script>
 const ROLES=[['top','Top'],['jgl','Jungle'],['mid','Mid'],['adc','ADC'],['sup','Support']];
-const CD=300, CD_INS=250;
+const CD=300, CD_INS=250, SOON=30, RING=276.46;
 
 // ---------- Zustand ----------
 let clock={running:false,t0:0,frozen:0}, clockTs=0;
@@ -85,10 +114,10 @@ let code=location.hash.slice(1)||rnd();
 history.replaceState(null,'','#'+code);
 let sClock=null,sPlayer=null,sFull=null,room=null;
 
-function netStatus(msg){
-  if(msg){$('net').textContent=msg;return}
+function netStatus(offline){
+  if(offline){$('net').innerHTML='<i class="dot"></i>Offline – kein Sync';return}
   const n=room?Object.keys(room.getPeers()).length:0;
-  $('net').innerHTML='Session <b>'+code+'</b> · '+(n+1)+' verbunden';
+  $('net').innerHTML='<i class="dot on"></i>Session <b>'+code+'</b> · '+(n+1)+' verbunden';
 }
 async function connect(){
   try{
@@ -111,10 +140,7 @@ async function connect(){
     });
     room.onPeerLeave(()=>netStatus());
     netStatus();
-  }catch(e){
-    netStatus('Offline – Sync nicht erreichbar');
-    console.error(e);
-  }
+  }catch(e){netStatus(true);console.error(e)}
 }
 function mergePlayer(d){
   const p=players[d.id];
@@ -138,9 +164,10 @@ const resetFlash=id=>setPlayer(id,{ready:null});
 const toggleIns=id=>setPlayer(id,{ins:!players[id].ins});
 
 function parseTime(v){
-  const m=v.trim().match(/^(\d+):([0-5]?\d)$/);
+  v=v.trim();
+  const m=v.match(/^(\d+):([0-5]?\d)$/);
   if(m)return +m[1]*60+ +m[2];
-  return /^\d+$/.test(v.trim())?+v.trim():null;
+  return /^\d+$/.test(v)?+v:null;
 }
 $('start').onclick=()=>{
   const v=$('set').value;
@@ -153,9 +180,9 @@ $('minus').onclick=()=>setClock(Math.max(0,gameNow()-1),clock.running);
 $('plus').onclick=()=>setClock(gameNow()+1,clock.running);
 $('pause').onclick=()=>setClock(gameNow(),!clock.running);
 $('copy').onclick=async()=>{
-  try{await navigator.clipboard.writeText(location.href);$('copy').textContent='Link kopiert'}
+  try{await navigator.clipboard.writeText(location.href);$('copy').textContent='Kopiert'}
   catch{prompt('Einladungslink:',location.href)}
-  setTimeout(()=>$('copy').textContent='Einladungslink kopieren',1500);
+  setTimeout(()=>$('copy').textContent='Link kopieren',1500);
 };
 $('newsess').onclick=()=>{location.hash=rnd();location.reload()};
 addEventListener('keydown',e=>{
@@ -169,31 +196,35 @@ addEventListener('keydown',e=>{
 // ---------- Oberfläche ----------
 const grid=$('grid');
 ROLES.forEach(([id,name],i)=>{
-  const c=document.createElement('div');
+  const c=document.createElement('article');
   c.className='card';c.id='c-'+id;
-  c.innerHTML=`<div class="role"><span>${name}</span><kbd>${i+1}</kbd></div>
-    <button class="use" aria-label="${name}: Flash benutzt"><span class="big"></span><small></small></button>
-    <div class="bar"><i></i></div>
-    <div class="row"><label><input type="checkbox"> Cosmic Insight</label><button>Zurück</button></div>`;
+  c.innerHTML=`<header><h2>${name}</h2><kbd>${i+1}</kbd></header>
+    <div class="ring"><svg viewBox="0 0 100 100"><circle class="trk" cx="50" cy="50" r="44"/><circle class="val" cx="50" cy="50" r="44"/></svg>
+      <div class="mid"><strong></strong><span></span></div></div>
+    <button class="use">Flash benutzt</button>
+    <footer><label class="sw"><input type="checkbox"><i></i>Insight</label><button class="undo" title="Rückgängig" aria-label="${name}: Rückgängig">↺</button></footer>`;
   c.querySelector('.use').onclick=()=>useFlash(id);
   c.querySelector('input').onchange=()=>toggleIns(id);
-  c.querySelector('.row button').onclick=()=>resetFlash(id);
+  c.querySelector('.undo').onclick=()=>resetFlash(id);
   grid.append(c);
 });
 function render(){
   const t=gameNow();
-  const el=$('time');
-  el.textContent=fmt(t);
-  el.className=clock.running?'':'paused';
+  $('time').textContent=fmt(t);
+  $('time').className=clock.running?'':'paused';
+  const st=$('state');
+  st.textContent=clock.running?'Läuft':(clockTs?'Pausiert':'Nicht gestartet');
+  st.className='state'+(clock.running?' run':'');
   $('pause').textContent=clock.running?'Pause':'Weiter';
   ROLES.forEach(([id])=>{
     const p=players[id],c=$('c-'+id);
+    const total=p.ins?CD_INS:CD;
     const rem=p.ready===null?0:p.ready-t;
-    const cd=rem>0;
-    c.classList.toggle('cd',cd);
-    c.querySelector('.big').textContent=cd?fmt(Math.ceil(rem)):'Flash da';
-    c.querySelector('small').textContent=cd?'wieder da um '+fmt(p.ready):'Klick = benutzt';
-    c.querySelector('.bar i').style.width=cd?Math.min(100,rem/(p.ins?CD_INS:CD)*100)+'%':'0';
+    const s=rem<=0?'ready':rem<=SOON?'soon':'cd';
+    c.dataset.s=s;
+    c.querySelector('strong').textContent=s==='ready'?'Bereit':fmt(Math.ceil(rem));
+    c.querySelector('.mid span').textContent=s==='ready'?'Flash verfügbar':'zurück um '+fmt(p.ready);
+    c.querySelector('.val').style.strokeDashoffset=s==='ready'?0:RING*(1-Math.min(1,rem/total));
     const cb=c.querySelector('input');
     if(cb.checked!==p.ins)cb.checked=p.ins;
   });
