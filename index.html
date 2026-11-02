@@ -15,24 +15,13 @@ button,input{font:inherit;color:inherit}
 button{cursor:pointer;border:1px solid var(--line);background:var(--raised);border-radius:10px;padding:9px 14px;font-weight:500;transition:background .15s,border-color .15s}
 button:hover{border-color:#3a4260;background:#222942}
 button:focus-visible,input:focus-visible+i{outline:2px solid var(--ac);outline-offset:2px}
-.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px}
 .brand{font-weight:800;font-size:20px;letter-spacing:-.02em}
 .top .r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .pill{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 14px;color:var(--mu);font-size:14px}
 .pill b{color:var(--tx);font-weight:600}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--mu)}
 .dot.on{background:var(--ready);box-shadow:0 0 8px var(--ready)}
-.clock{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px;text-align:center;margin-bottom:20px}
-.state{display:inline-block;font-size:13px;font-weight:600;color:var(--mu);margin-bottom:4px}
-.state.run{color:var(--ready)}
-#time{font-size:88px;font-weight:800;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
-#time.paused{color:#566079}
-.ctl{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:20px}
-.sync{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg)}
-.sync input{background:none;border:0;width:96px;padding:0 12px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
-.sync input:focus{outline:none}
-.sync button{border:0;border-radius:0;background:var(--ac);color:#0b0d12;font-weight:700}
-.sync button:hover{background:#9bb4ff}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
 .card{--c:var(--ready);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:14px;transition:border-color .2s}
 .card[data-s=cd]{--c:var(--cd)}
@@ -61,7 +50,7 @@ kbd{font:600 12px Inter,sans-serif;color:var(--mu);background:var(--raised);bord
 .sw input:checked+i::after{transform:translateX(14px);background:var(--ac)}
 .undo{padding:4px 10px;border-radius:8px;font-size:15px}
 .hint{color:var(--mu);font-size:13.5px;text-align:center;margin-top:24px}
-@media(max-width:600px){#time{font-size:64px}.grid{grid-template-columns:1fr 1fr;gap:10px}.ring{width:120px;height:120px}.mid strong{font-size:28px}}
+@media(max-width:600px){.grid{grid-template-columns:1fr 1fr;gap:10px}.ring{width:120px;height:120px}.mid strong{font-size:28px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -72,27 +61,14 @@ kbd{font:600 12px Inter,sans-serif;color:var(--mu);background:var(--raised);bord
     <div class="r">
       <div class="pill" id="net"><i class="dot"></i>Verbinde …</div>
       <button id="copy">Link kopieren</button>
+      <button id="resetall">Alle zurücksetzen</button>
       <button id="newsess">Neue Session</button>
     </div>
   </div>
 
-  <section class="clock" aria-label="Spielzeit">
-    <div class="state" id="state">Nicht gestartet</div>
-    <div id="time" class="paused">0:00</div>
-    <div class="ctl">
-      <div class="sync">
-        <input type="text" id="set" placeholder="mm:ss" inputmode="numeric" aria-label="Spielzeit eingeben">
-        <button id="start">Start / Sync</button>
-      </div>
-      <button id="minus">−1 s</button>
-      <button id="plus">+1 s</button>
-      <button id="pause">Pause</button>
-    </div>
-  </section>
-
   <main class="grid" id="grid"></main>
 
-  <p class="hint">Tasten 1–5: Flash benutzt · Umschalt + 1–5: Cosmic Insight an/aus<br>Zum Synchronisieren die Spielzeit aus dem Spiel eingeben (z. B. 4:32) und „Start / Sync“ drücken.</p>
+  <p class="hint">Tasten 1–5: Flash benutzt · Umschalt + 1–5: Cosmic Insight an/aus</p>
 </div>
 
 <script>
@@ -100,19 +76,19 @@ const ROLES=[['top','Top'],['jgl','Jungle'],['mid','Mid'],['adc','ADC'],['sup','
 const CD=300, CD_INS=250, SOON=30, RING=276.46;
 
 // ---------- Zustand ----------
-let clock={running:false,t0:0,frozen:0}, clockTs=0;
+// ready = lokaler Zeitpunkt (ms), an dem der Flash wieder verfügbar ist
 const players={};
 ROLES.forEach(([id])=>players[id]={ins:false,ready:null,ts:0});
-const gameNow=()=>clock.running?(Date.now()-clock.t0)/1000:clock.frozen;
-function applyClock(t,running){clock={running,frozen:t,t0:Date.now()-t*1000}}
 const fmt=s=>{s=Math.max(0,Math.floor(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+// Übertragen wird die Restzeit, nicht die Uhrzeit – so spielen unterschiedliche Geräteuhren keine Rolle
+const toWire=p=>({ins:p.ins,rem:p.ready===null?null:(p.ready-Date.now())/1000,ts:p.ts});
 
 // ---------- Netzwerk (Trystero, Peer-to-Peer, kein eigener Server) ----------
 const $=id=>document.getElementById(id);
 const rnd=()=>Array.from(crypto.getRandomValues(new Uint8Array(6)),b=>'abcdefghjkmnpqrstuvwxyz23456789'[b%31]).join('');
 let code=location.hash.slice(1)||rnd();
 history.replaceState(null,'','#'+code);
-let sClock=null,sPlayer=null,sFull=null,room=null;
+let sPlayer=null,sFull=null,room=null;
 
 function netStatus(offline){
   if(offline){$('net').innerHTML='<i class="dot"></i>Offline – kein Sync';return}
@@ -123,67 +99,46 @@ async function connect(){
   try{
     const {joinRoom}=await import('https://cdn.jsdelivr.net/npm/trystero@0.21.5/+esm');
     room=joinRoom({appId:'lol-flash-tracker-v1'},code);
-    let gC,gP,gF;
-    [sClock,gC]=room.makeAction('clock');
+    let gP,gF;
     [sPlayer,gP]=room.makeAction('player');
     [sFull,gF]=room.makeAction('full');
-    gC(d=>{if(d.ts>clockTs){clockTs=d.ts;applyClock(d.t,d.running);render()}});
-    gP(d=>mergePlayer(d));
-    gF(d=>{
-      if(d.clock.ts>clockTs){clockTs=d.clock.ts;applyClock(d.clock.t,d.clock.running)}
-      Object.entries(d.players).forEach(([id,p])=>mergePlayer({id,...p}));
-      render();
-    });
+    gP(d=>mergePlayer(d.id,d));
+    gF(d=>{Object.entries(d).forEach(([id,p])=>mergePlayer(id,p))});
     room.onPeerJoin(id=>{
-      sFull({clock:{t:gameNow(),running:clock.running,ts:clockTs},players},id);
+      const all={};ROLES.forEach(([r])=>all[r]=toWire(players[r]));
+      sFull(all,id);
       netStatus();
     });
     room.onPeerLeave(()=>netStatus());
     netStatus();
   }catch(e){netStatus(true);console.error(e)}
 }
-function mergePlayer(d){
-  const p=players[d.id];
-  if(p&&d.ts>p.ts){p.ins=d.ins;p.ready=d.ready;p.ts=d.ts;render()}
+function mergePlayer(id,d){
+  const p=players[id];
+  if(p&&d.ts>p.ts){
+    p.ins=d.ins;
+    p.ready=d.rem===null?null:Date.now()+d.rem*1000;
+    p.ts=d.ts;
+    render();
+  }
 }
 
 // ---------- Aktionen ----------
 function setPlayer(id,patch){
   Object.assign(players[id],patch,{ts:Date.now()});
-  sPlayer&&sPlayer({id,...players[id]});
+  sPlayer&&sPlayer({id,...toWire(players[id])});
   render();
 }
-function setClock(t,running){
-  clockTs=Date.now();
-  applyClock(t,running);
-  sClock&&sClock({t,running,ts:clockTs});
-  render();
-}
-const useFlash=id=>setPlayer(id,{ready:gameNow()+(players[id].ins?CD_INS:CD)});
+const useFlash=id=>setPlayer(id,{ready:Date.now()+(players[id].ins?CD_INS:CD)*1000});
 const resetFlash=id=>setPlayer(id,{ready:null});
 const toggleIns=id=>setPlayer(id,{ins:!players[id].ins});
 
-function parseTime(v){
-  v=v.trim();
-  const m=v.match(/^(\d+):([0-5]?\d)$/);
-  if(m)return +m[1]*60+ +m[2];
-  return /^\d+$/.test(v)?+v:null;
-}
-$('start').onclick=()=>{
-  const v=$('set').value;
-  const t=v.trim()===''?(clock.running?gameNow():0):parseTime(v);
-  if(t===null){$('set').focus();return}
-  setClock(t,true);$('set').value='';
-};
-$('set').onkeydown=e=>{if(e.key==='Enter')$('start').click()};
-$('minus').onclick=()=>setClock(Math.max(0,gameNow()-1),clock.running);
-$('plus').onclick=()=>setClock(gameNow()+1,clock.running);
-$('pause').onclick=()=>setClock(gameNow(),!clock.running);
 $('copy').onclick=async()=>{
   try{await navigator.clipboard.writeText(location.href);$('copy').textContent='Kopiert'}
   catch{prompt('Einladungslink:',location.href)}
   setTimeout(()=>$('copy').textContent='Link kopieren',1500);
 };
+$('resetall').onclick=()=>ROLES.forEach(([id])=>resetFlash(id));
 $('newsess').onclick=()=>{location.hash=rnd();location.reload()};
 addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.ctrlKey||e.metaKey||e.altKey)return;
@@ -209,21 +164,15 @@ ROLES.forEach(([id,name],i)=>{
   grid.append(c);
 });
 function render(){
-  const t=gameNow();
-  $('time').textContent=fmt(t);
-  $('time').className=clock.running?'':'paused';
-  const st=$('state');
-  st.textContent=clock.running?'Läuft':(clockTs?'Pausiert':'Nicht gestartet');
-  st.className='state'+(clock.running?' run':'');
-  $('pause').textContent=clock.running?'Pause':'Weiter';
+  const now=Date.now();
   ROLES.forEach(([id])=>{
     const p=players[id],c=$('c-'+id);
     const total=p.ins?CD_INS:CD;
-    const rem=p.ready===null?0:p.ready-t;
+    const rem=p.ready===null?0:(p.ready-now)/1000;
     const s=rem<=0?'ready':rem<=SOON?'soon':'cd';
     c.dataset.s=s;
     c.querySelector('strong').textContent=s==='ready'?'Bereit':fmt(Math.ceil(rem));
-    c.querySelector('.mid span').textContent=s==='ready'?'Flash verfügbar':'zurück um '+fmt(p.ready);
+    c.querySelector('.mid span').textContent=s==='ready'?'Flash verfügbar':'auf Cooldown';
     c.querySelector('.val').style.strokeDashoffset=s==='ready'?0:RING*(1-Math.min(1,rem/total));
     const cb=c.querySelector('input');
     if(cb.checked!==p.ins)cb.checked=p.ins;
